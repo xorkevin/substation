@@ -1,0 +1,19 @@
+{
+  "name": "substation",
+  "version": "0.1.0",
+  "description": "a data framework to power reactive apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xorkevin/substation.git"
+  },
+  "author": "xorkevin",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/xorkevin/substation/issues"
+  },
+  "homepage": "https://github.com/xorkevin/substation#readme"
+}

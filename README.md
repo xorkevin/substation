@@ -1,2 +1,2 @@
 # substation
-data to power reactive apps
+a data framework to power reactive apps
