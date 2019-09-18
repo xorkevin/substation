@@ -11,8 +11,4 @@ const formatStr = (str, ...args) => {
   return formatStrArgs(str, args);
 };
 
-const max = (a, b) => (a > b ? a : b);
-
-const max0 = (a) => max(a, 0);
-
-export {formatStr, formatStrArgs, max, max0};
+export {formatStr, formatStrArgs};

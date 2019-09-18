@@ -5,7 +5,7 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import {formatStrArgs, max0} from './utility';
+import {formatStrArgs} from './utility';
 
 // API Client
 
