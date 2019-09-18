@@ -2,7 +2,7 @@
   "name": "substation",
   "version": "0.1.0",
   "description": "a data framework to power reactive apps",
-  "main": "index.js",
+  "main": "dist/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode production"
@@ -18,11 +18,12 @@
   },
   "homepage": "https://github.com/xorkevin/substation#readme",
   "devDependencies": {
+    "react": "^16.9.0",
     "terser-webpack-plugin": "^2.1.0",
     "webpack": "^4.40.2",
     "webpack-cli": "^3.3.9"
   },
-  "dependencies": {
+  "peerDependencies": {
     "react": "^16.9.0"
   }
 }
