@@ -1,9 +1,9 @@
 {
-  "name": "substation",
+  "name": "@xorkevin/substation",
   "version": "0.1.0",
   "description": "a data framework to power reactive apps",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/xorkevin"
+    "registry": "https://npm.pkg.github.com/"
   },
   "main": "dist/substation.js",
   "sideEffects": false,
