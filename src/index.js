@@ -112,7 +112,7 @@ const makeAPIClient = (baseurl, baseopts, apiconfig) => {
           Object.assign(fn, makeAPIClient(url, baseopts, v.children));
         }
         Object.assign(fn, {
-          api_prop: {
+          prop: {
             url,
             formatUrl: (args) => formatStrArgs(url, args),
           },
@@ -132,8 +132,7 @@ const useAPI = (selector) => {
   return selector(apiClient);
 };
 
-const useURL = (selector, args = []) =>
-  useAPI(selector).api_prop.formatUrl(args);
+const useURL = (selector, args = []) => useAPI(selector).prop.formatUrl(args);
 
 const API_CANCEL = Symbol('API_CANCEL');
 

@@ -38,8 +38,8 @@ of the latter.
 ### `makeAPIClient`
 
 `makeAPIClient` takes in a declarative API configuration and creates an API
-client. Conceptually, it treats an HTTP rest API as a tree of routes and
-methods.
+client as defined in the `APIClient` section. Conceptually, it treats an HTTP
+rest API as a tree of routes and methods.
 
 #### Example
 
@@ -189,9 +189,86 @@ route.
 
 Type: `string`, required
 
+`url` defines a path for the current route relative to its parent.
+
+A `url` may also have arguments defined by the placeholders `{0}`, `{1}`,
+`{2}`, ... These are each replaced by their respective `n`th argument provided
+to the route through the transformer which is defined in the `transformer`
+section.
+
+##### Example
+
+```js
+const apiConfig = {
+  hello: {
+    url: '/ping',
+    method: 'GET',
+    expectdata: true,
+    err: 'Could not say hello',
+    children: {
+      user: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+        expectdata: true,
+      },
+    },
+  },
+};
+
+// APIClient has two functions available: hello and hello.user
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+// calls HTTP GET /api/ping
+await APIClient.hello();
+// calls HTTP GET /api/ping/xorkevin
+await APIClient.hello.user('xorkevin');
+```
+
 #### `method`
 
 Type: `string`, optional
+
+`method` defines the method of the HTTP request, and may be one of the defined
+[HTTP methods](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods).
+
+If no method is provided, then no route function is generated for the current
+path. Though functions will still be generated for all children with a
+`routeConfig` defined with a `method`. There are two reasons for this behavior.
+First, some APIs may not have an HTTP handler defined for every prefix of a
+path. Second, one may want to define a url for a path without defining an http
+client fetch for it, e.g. using the url for an image src.
+
+##### Example
+
+```js
+const apiConfig = {
+  profile: {
+    url: '/profile',
+    children: {
+      user: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+        expectdata: true,
+        children: {
+          image: {
+            url: '/image',
+          },
+        },
+      },
+    },
+  },
+};
+
+// APIClient has one function available: profile.user
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+// calls HTTP GET /api/profile
+// await APIClient.profile(); will fail because profile has no method defined
+// calls HTTP GET /api/profile/xorkevin
+await APIClient.profile.user('xorkevin');
+// can now render <img src={APIClient.profile.user.image.prop.formatUrl('xorkevin') />
+// produces url /api/profile/xorkevin/image
+```
 
 #### `transformer`
 
@@ -220,3 +297,11 @@ Type: `Object`, optional
 #### `opts`
 
 Type: `Object`, optional
+
+#### `children`
+
+Type: `apiConfig`, optional
+
+### `APIClient`
+
+## Hooks
