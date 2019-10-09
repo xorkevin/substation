@@ -102,7 +102,7 @@ instead.
 
 #### `baseUrl`
 
-Type: `String`
+Type: `string`
 
 `baseUrl` is the base url which defines the root of an HTTP API.
 
@@ -126,17 +126,97 @@ await APIClient.hello();
 
 const baseURL2 = '/api/v2';
 
-// APIClient consists of a function hello which makes a request to
-/api/v2/hello
+// APIClient consists of a function hello which makes a request to /api/v2/hello
 const APIClient2 = makeAPIClient(baseURL, {}, apiConfig);
 await APIClient2.hello();
 ```
 
 #### `baseOpts`
 
+Type: `Object`
+
 `baseOpts` provides default values that are passed to the web [Fetch
 API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API). These values
 are specified in the `init` section of the [fetch
 documentation](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch).
-`baseOpts` are set for all functions of an APIClient. They may be overriden on
-a per function and call basis as described in the next section.
+`baseOpts` are set for all functions of an APIClient. They may be overridden on
+a per function and per call basis as described in the `apiConfig` section.
+
+#### `apiConfig`
+
+Type: `Object`
+
+`apiConfig` is a plain JS object that has keys with the name of the current
+route, and values of a `routeConfig` as defined in the next section.
+
+##### Example
+
+```js
+const apiConfig = {
+  hello: { /* routeConfig */ },
+  world: { /* routeConfig */ },
+};
+
+// APIClient has functions hello and world as defined in the apiConfig
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+await APIClient.hello();
+await APIClient.world();
+```
+
+#### `routeConfig`
+
+Type: `Object`
+
+`routeConfig` is a plain JS object with the following fields that configure a
+route.
+
+```js
+{
+  url: 'string, required',
+  method: 'string, optional',
+  transformer: 'Function(), optional',
+  expectdata: 'boolean, optional',
+  selector: 'Function(), optional',
+  err: 'Function() | string, optional',
+  catcher: 'Function(), optional',
+  headers: 'Object, optional',
+  opts: 'Object, optional',
+  children: 'apiConfig, optional',
+}
+```
+
+#### `url`
+
+Type: `string`, required
+
+#### `method`
+
+Type: `string`, optional
+
+#### `transformer`
+
+Type: `Function()`, optional
+
+#### `expectdata`
+
+Type: `boolean`, optional
+
+#### `selector`
+
+Type: `Function()`, optional
+
+#### `err`
+
+Type: `Function() | string`, optional
+
+#### `catcher`
+
+Type: `Function()`, optional
+
+#### `headers`
+
+Type: `Object`, optional
+
+#### `opts`
+
+Type: `Object`, optional
