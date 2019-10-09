@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "a data framework to power reactive apps",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "registry": "https://npm.pkg.github.com/xorkevin"
   },
   "main": "dist/substation.js",
   "sideEffects": false,
