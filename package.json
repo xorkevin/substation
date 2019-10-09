@@ -2,8 +2,10 @@
   "name": "substation",
   "version": "0.1.0",
   "description": "a data framework to power reactive apps",
-  "main": "index.js",
+  "main": "dist/substation.js",
+  "sideEffects": false,
   "scripts": {
+    "build": "webpack --mode production --progress --color",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +17,30 @@
   "bugs": {
     "url": "https://github.com/xorkevin/substation/issues"
   },
-  "homepage": "https://github.com/xorkevin/substation#readme"
+  "homepage": "https://github.com/xorkevin/substation#readme",
+  "devDependencies": {
+    "@babel/core": "^7.6.3",
+    "@babel/preset-env": "^7.6.3",
+    "@babel/preset-react": "^7.6.3",
+    "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
+    "eslint": "^6.5.1",
+    "eslint-config-prettier": "^6.4.0",
+    "eslint-loader": "^3.0.2",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-react": "^7.16.0",
+    "eslint-plugin-react-hooks": "^2.1.2",
+    "prettier": "^1.18.2",
+    "react": "^16.10.2",
+    "terser-webpack-plugin": "^2.1.2",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "peerDependencies": {
+    "react": "^16.9.0"
+  },
+  "dependencies": {
+    "core-js": "^3.2.1"
+  }
 }
