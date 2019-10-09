@@ -1,4 +1,3 @@
-import 'core-js/stable';
 import React, {
   useState,
   useEffect,

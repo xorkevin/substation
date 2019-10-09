@@ -20,7 +20,6 @@ const createConfig = (api) => {
         },
       ],
     ],
-    plugins: ['@babel/syntax-dynamic-import'],
   };
 };
 

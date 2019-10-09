@@ -40,7 +40,5 @@
   "peerDependencies": {
     "react": "^16.9.0"
   },
-  "dependencies": {
-    "core-js": "^3.2.1"
-  }
+  "dependencies": {}
 }

@@ -34,7 +34,8 @@ const createConfig = (env, argv) => {
     output: {
       path: path.resolve(__dirname, 'dist'),
       filename: 'substation.js',
-      libraryTarget: 'commonjs2',
+      library: 'substation',
+      libraryTarget: 'umd',
     },
 
     externals: [nodeExternals()],
