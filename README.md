@@ -204,7 +204,7 @@ const apiConfig = {
     url: '/ping',
     method: 'GET',
     expectdata: true,
-    err: 'Could not say hello',
+    err: 'Could not ping',
     children: {
       user: {
         url: '/{0}',
@@ -262,11 +262,11 @@ const apiConfig = {
 
 // APIClient has one function available: profile.user
 const APIClient = makeAPIClient('/api', {}, apiConfig);
-// calls HTTP GET /api/profile
-// await APIClient.profile(); will fail because profile has no method defined
+// will fail because profile has no method defined
+// await APIClient.profile();
 // calls HTTP GET /api/profile/xorkevin
 await APIClient.profile.user('xorkevin');
-// can now render <img src={APIClient.profile.user.image.prop.formatUrl('xorkevin') />
+// can now render <img src={APIClient.profile.user.image.prop.formatUrl('xorkevin')} />
 // produces url /api/profile/xorkevin/image
 ```
 
