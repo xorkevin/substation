@@ -386,8 +386,8 @@ const APIClient = makeAPIClient('/api', {}, apiConfig);
 
 // calls HTTP GET /api/user/xorkevin
 const [data, status, err] = await APIClient.user.name('xorkevin');
-// if the HTTP response body were '{ "firstName": "Kevin" }'
-// then an example response would be
+// if the HTTP response were 200 OK '{ "firstName": "Kevin" }'
+// then the returned values would be
 // data: 'Kevin'
 // status: 200
 // err: null
@@ -408,11 +408,103 @@ const defaultSelector = (_status, data) => {
 
 #### `err`
 
-Type: `Function() | string`, optional
+Type: `Function(status: int, err: Object | undefined) -> Object | string`, optional
+
+`err` is a function taking in an HTTP response status, and any data in the
+response body if a there was a body present. It is called only when a response
+is received from the server with an HTTP status **outside** the range of `2XX`.
+
+As a convenience, `err` may also be a string of which a default error handler
+will be created for that will always return that message when called.
+
+##### Example
+
+```js
+const apiConfig = {
+  user: {
+    url: '/user',
+    children: {
+      name: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+        err: (_status, data) => data && data.message,
+      },
+    },
+  },
+};
+
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+// calls HTTP GET /api/user/xorkevin
+const [data, status, err] = await APIClient.user.name('xorkevin');
+// if the HTTP response were 404 Not Found '{ "message": "user with username does not exist" }'
+// then the returned values would be
+// data: null
+// status: 404
+// err: 'user with username does not exist'
+```
+
+##### Default Err Handler
+
+The default err handler is defined as:
+
+```js
+const errHandler = (defaultMessage) => (_status, data) => {
+  if (data && data.message) {
+    return data.message;
+  }
+  return defaultMessage;
+};
+
+const defaultErrHandler = errHandler('Request error');
+```
 
 #### `catcher`
 
-Type: `Function()`, optional
+Type: `Function(Error) -> Object`, optional
+
+`catcher` is a function taking in a JS
+[Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error)
+and returning some Object. `catcher` is called whenever there is an error
+thrown by the underlying `fetch` HTTP call. In such a situation, the route will
+return a status of `-1`.
+
+##### Example
+
+```js
+const apiConfig = {
+  user: {
+    url: '/user',
+    children: {
+      name: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+        catcher: (err) => err.message,
+      },
+    },
+  },
+};
+
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+// calls HTTP GET /api/user/xorkevin
+const [data, status, err] = await APIClient.user.name('xorkevin');
+// if a connection could not be established with the server
+// then the returned values could be
+// data: null
+// status: -1
+// err: 'NetworkError when attempting to fetch resource'
+```
+
+##### Default Catcher
+
+The default catcher is defined as:
+
+```js
+const defaultCatcher = (err) => err.message;
+```
 
 #### `headers`
 

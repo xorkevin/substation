@@ -84,8 +84,12 @@ const makeFetch = ({
       const res = await fetch(finalurl, opts);
       const status = res.status;
       if (status < 200 || status >= 300) {
-        const err = await res.json();
-        return [null, status, onerr(status, err)];
+        try {
+          const err = await res.json();
+          return [null, status, onerr(status, err)];
+        } catch (_err) {
+          return [null, status, onerr(status)];
+        }
       }
       if (!expectdata) {
         return [onsuccess(status), status, null];
