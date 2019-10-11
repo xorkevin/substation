@@ -1,10 +1,24 @@
 # substation
-a data framework to power reactive apps
+a client data framework to power reactive apps
 
 ## Introduction
 
 `substation` is a library that provides a declarative way to build web API
 clients. It currently only supports HTTP rest APIs.
+
+#### Design Goals
+
+HTTP servers are often built in the form of a "middleware router tree", where a
+request is passed from router to router each matching a section of the path.
+For example, given a path such as `/api/user/xorkevin`, one router may be
+responsible for matching `/api`, sending the request to another router. That
+router then matches `/user`, sending it to a final route handler which handles
+the entire route. This design has worked well for HTTP servers. Unfortunately,
+there is no comparable client side library that uses this pattern.
+
+`substation` aims to be the client side library that addresses this. It also
+provides React hooks that provide an opionated and declarative way to call HTTP
+rest APIs.
 
 ## Installation
 
@@ -278,9 +292,10 @@ a 4 element array (tuple) containing the url params array, request body,
 request headers, and request opts. The `n`th element in the url params array
 corresponds to the `n`th `{n}` placeholder as seen in the `url` field
 definition. The body may be a JSON object or
-[FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData). Headers
-and opts override any default headers and opts that were set by `baseOpts`
-prior. Any element of the tuple is nullable.
+[FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData). The
+`Content-Type` header will be set automatically in both cases. Headers and opts
+override any default headers and opts that were set by `baseOpts` prior. Any
+element of the tuple is nullable.
 
 ##### Example
 
@@ -510,14 +525,62 @@ const defaultCatcher = (err) => err.message;
 
 Type: `Object`, optional
 
+`headers` are default headers for the current route. Each key is the name of an
+HTTP header, and their value is their corresponding header value. Default
+header values set by `headers` will override **all** headers provided in
+`baseOpts`. Again, these header values can be overridden by those returned by
+the `selector`.
+
+Note: As explained in the `transformer` section, there is no need to set the
+`Content-Type` to `application/json` or another specific MIME when dealing with
+JSON and FormData. That is automatically handled.
+
 #### `opts`
 
 Type: `Object`, optional
+
+`opts` are default opts for the current route. Like `baseOpts`, `opts` provides
+default values that are passed to the web [Fetch
+API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) except they
+are only applied to the current route. These values are specified in the `init`
+section of the [fetch
+documentation](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch).
+`opts` will override any defaults set by `baseOpts` for the current route.  The
+only `opts` that will be ignored will be `method`, `headers`, and `body`, as
+those are set by their corresponding fields in the `routeConfig`.
 
 #### `children`
 
 Type: `apiConfig`, optional
 
-### `APIClient`
+`children` defines a subtree of routes rooted at the current path. `url`s along
+this path are added together to form the final url path.
+
+##### Example
+
+```js
+const apiConfig = {
+  hello: {
+    url: '/ping',
+    method: 'GET',
+    children: {
+      user: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+      },
+    },
+  },
+};
+
+// APIClient has two functions available: hello and hello.user
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+// calls HTTP GET /api/ping
+await APIClient.hello();
+
+// calls HTTP GET /api/ping/xorkevin
+await APIClient.hello.user('xorkevin');
+```
 
 ## Hooks
