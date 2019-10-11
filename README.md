@@ -113,8 +113,6 @@ const apiConfig = {
   hello: {
     url: '/hello',
     method: 'GET',
-    expectdata: true,
-    err: 'Could not say hello',
   },
 };
 
@@ -203,14 +201,11 @@ const apiConfig = {
   hello: {
     url: '/ping',
     method: 'GET',
-    expectdata: true,
-    err: 'Could not ping',
     children: {
       user: {
         url: '/{0}',
         method: 'GET',
         transformer: (username) => [[username], null],
-        expectdata: true,
       },
     },
   },
@@ -218,8 +213,10 @@ const apiConfig = {
 
 // APIClient has two functions available: hello and hello.user
 const APIClient = makeAPIClient('/api', {}, apiConfig);
+
 // calls HTTP GET /api/ping
 await APIClient.hello();
+
 // calls HTTP GET /api/ping/xorkevin
 await APIClient.hello.user('xorkevin');
 ```
@@ -249,7 +246,6 @@ const apiConfig = {
         url: '/{0}',
         method: 'GET',
         transformer: (username) => [[username], null],
-        expectdata: true,
         children: {
           image: {
             url: '/image',
@@ -262,25 +258,153 @@ const apiConfig = {
 
 // APIClient has one function available: profile.user
 const APIClient = makeAPIClient('/api', {}, apiConfig);
+
 // will fail because profile has no method defined
 // await APIClient.profile();
+
 // calls HTTP GET /api/profile/xorkevin
 await APIClient.profile.user('xorkevin');
+
 // can now render <img src={APIClient.profile.user.image.prop.formatUrl('xorkevin')} />
 // produces url /api/profile/xorkevin/image
 ```
 
 #### `transformer`
 
-Type: `Function()`, optional
+Type: `Function(...args) -> [urlParams: string[] | null, body: Object | FormData | null, headers: Object | null, opts: Object | null]`, optional
+
+`transformer` is called on all the arguments passed to a route, and it returns
+a 4 element array (tuple) containing the url params array, request body,
+request headers, and request opts. The `n`th element in the url params array
+corresponds to the `n`th `{n}` placeholder as seen in the `url` field
+definition. The body may be a JSON object or
+[FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData). Headers
+and opts override any default headers and opts that were set by `baseOpts`
+prior. Any element of the tuple is nullable.
+
+##### Example
+
+```js
+const apiConfig = {
+  user: {
+    url: '/user',
+    children: {
+      name: {
+        url: '/{0}',
+        update: {
+          url: '',
+          method: 'PUT',
+          transformer: (username, fields) => [[username], fields],
+        },
+      },
+    },
+  },
+};
+
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+// calls HTTP PUT /api/user/xorkevin with the JSON string body of '{ "firstName": "Kevin" }'
+await APIClient.user.name.update('xorkevin', { firstName: 'Kevin' });
+```
+
+##### Default Transformer
+
+The default transformer is defined as:
+
+```js
+const defaultTransformer = (...args) => {
+  if (args.length === 0) {
+    return [null, null, null, null];
+  }
+  if (args.length === 1) {
+    return [null, args[0], null, null];
+  }
+  const k = args.length - 1;
+  return [args.slice(0, k), args[k], null, null];
+};
+```
 
 #### `expectdata`
 
 Type: `boolean`, optional
 
+When `expectdata` is `true`, a JSON response is expected, and will attempt to
+be parsed. When false, no response is expected.
+
+```js
+const apiConfig = {
+  user: {
+    url: '/user',
+    children: {
+      name: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+        expectdata: true,
+      },
+    },
+  },
+};
+
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+// calls HTTP GET /api/user/xorkevin
+const [data, status, err] = await APIClient.user.name('xorkevin');
+// an example response might be:
+// data: { firstName: 'Kevin' }
+// status: 200
+// err: null
+```
+
 #### `selector`
 
-Type: `Function()`, optional
+Type: `Function(status: int, data: Object | undefined) -> Object`, optional
+
+`selector` is a function taking in an HTTP response status, and any data in the
+response body if `expectdata` was true. It is called only when a response is
+received from the server with an HTTP status in the range of `2XX`.
+
+##### Example
+
+```js
+const apiConfig = {
+  user: {
+    url: '/user',
+    children: {
+      name: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+        expectdata: true,
+        selector: (_status, {firstName}) => firstName,
+      },
+    },
+  },
+};
+
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+// calls HTTP GET /api/user/xorkevin
+const [data, status, err] = await APIClient.user.name('xorkevin');
+// if the HTTP response body were '{ "firstName": "Kevin" }'
+// then an example response would be
+// data: 'Kevin'
+// status: 200
+// err: null
+```
+
+##### Default Selector
+
+The default selector is defined as:
+
+```js
+const defaultSelector = (_status, data) => {
+  if (data) {
+    return data;
+  }
+  return null;
+};
+```
 
 #### `err`
 
