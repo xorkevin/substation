@@ -9,14 +9,15 @@ clients. It currently only supports HTTP rest APIs.
 #### Design Goals
 
 HTTP servers are often built in the form of a "middleware router tree", where a
-request is passed from router to router each matching a section of the path.
+request is passed from router to router each matching a prefix of the path.
 For example, given a path such as `/api/user/xorkevin`, one router may be
 responsible for matching `/api`, sending the request to another router. That
 router then matches `/user`, sending it to a final route handler which handles
 the entire route. This design has worked well for HTTP servers. Unfortunately,
 there is no comparable client side library that uses this pattern.
 
-`substation` aims to be the client side library that addresses this. It also
+`substation` aims to be the client side library that addresses this. It models
+an HTTP API client as a tree of handlers based on the url path. It also
 provides React hooks that provide an opionated and declarative way to call HTTP
 rest APIs.
 
@@ -112,7 +113,7 @@ instead.
 
 ### `makeAPIClient` Configuration
 
-`makeAPIClient(baseUrl, baseOpts, apiConfig)`
+`makeAPIClient(baseUrl, baseOpts, apiConfig) -> APIClient`
 
 #### `baseUrl`
 
@@ -583,4 +584,84 @@ await APIClient.hello();
 await APIClient.hello.user('xorkevin');
 ```
 
-## Hooks
+### `APIClient`
+
+An `APIClient` is returned by `makeAPIClient` which is a tree of JS objects and
+async functions that return `[data, status, err]: [Object, int, string]`.
+`data` is the json response sent back by the server, if any. `status` is the
+HTTP status code sent back by the server. `-1` is returned if the HTTP request
+failed to be made, e.g. failing to establish a TCP connection. `err` is a
+string of the error or `null` if there is none.
+
+##### Example
+
+```js
+const apiConfig = {
+  hello: {
+    url: '/ping',
+    method: 'GET',
+    children: {
+      user: {
+        url: '/{0}',
+        method: 'GET',
+        transformer: (username) => [[username], null],
+      },
+    },
+  },
+};
+
+// APIClient has two functions available: hello and hello.user
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+// calls HTTP GET /api/ping/xorkevin
+const [data, status, err] = await APIClient.hello.user('xorkevin');
+// if the HTTP response were 200 OK '{ "firstName": "Kevin" }'
+assert.deepStrictEqual(data, { firstName: 'Kevin' });
+assert.strictEqual(status, 200);
+assert.strictEqual(err, null);
+```
+
+## Integrations
+
+`APIClient` by itself can be difficult to use from various locations in the
+project, hence integrations are provided to use the client in a declarative
+way. So far only `React` is supported.
+
+### React
+
+`substation` exports an `APIContext` which provides the `APIClient` to the
+hooks `useAPI`, `useURL`, `useAPICall`, and `useResource`. These hooks may then
+be used within React components.
+
+Though hooks are recommended, it is not necessary to use them everywhere, as
+both the React `Context.Provider` and `Context.Consumer`, which provide the
+`APIContext`, are exported by `substation`. This allows React projects which
+are still migrating to hooks, or do not plan to use them to take advantage of
+`substation`.
+
+#### `APIContext`
+
+`APIContext` is a React context that provides `APIClient` to all components.
+
+##### Example
+
+```js
+import {makeAPIClient, APIContext} from '@xorkevin/substation';
+
+const apiConfig = { /* api config here */ };
+
+const APIClient = makeAPIClient('/api', {}, apiConfig);
+
+ReactDOM.render(
+  <APIContext.Provider value={APIClient}>
+    <App />
+
+    {/* React consumer is also exported by APIContext.Consumer if not using hooks */}
+    {/* (not recommended) */}
+    <APIContext.Consumer>
+      {apiclient => (/* use apiclient here */) }
+    </APIContext.Consumer>
+  </APIContext.Provider>,
+  document.getElementById('mount'),
+);
+```
