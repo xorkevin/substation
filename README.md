@@ -629,15 +629,14 @@ way. So far only `React` is supported.
 
 ### React
 
-`substation` exports an `APIContext` which provides the `APIClient` to the
-hooks `useAPI`, `useURL`, `useAPICall`, and `useResource`. These hooks may then
-be used within React components.
+`substation` exports an `APIContext` which provides the `APIClient` to a number
+of React hooks. These hooks may then be used within React components.
 
-Though hooks are recommended, it is not necessary to use them everywhere, as
-both the React `Context.Provider` and `Context.Consumer`, which provide the
-`APIContext`, are exported by `substation`. This allows React projects which
-are still migrating to hooks, or do not plan to use them to take advantage of
-`substation`.
+Though hooks are recommended, it is not necessary to use them to use
+`substation` as both the React `Context.Provider` and `Context.Consumer`, which
+provide `APIContext`, are exported by `substation`. This allows React projects
+which are still migrating to hooks, or do not plan to use them to take
+advantage of `substation`.
 
 #### `APIContext`
 
@@ -647,6 +646,10 @@ are still migrating to hooks, or do not plan to use them to take advantage of
 
 ```js
 import {makeAPIClient, APIContext} from '@xorkevin/substation';
+
+const App = () => {
+  // application here
+};
 
 const apiConfig = { /* api config here */ };
 
@@ -665,3 +668,31 @@ ReactDOM.render(
   document.getElementById('mount'),
 );
 ```
+
+#### Definitions
+
+##### `selector`
+
+##### `args`
+
+##### `initState`
+
+##### `opts`
+
+##### `apiState`
+
+##### `execute`
+
+#### `useResource`
+
+#### `useAPICall`
+
+Type: `Function(selector, args = [], initState, opts) -> [apiState, execute]`
+
+`useAPICall` should be used when one wants to have control over when the HTTP
+request is made, such as when a button is clicked, or when another event is
+triggered. Typically `useAPICall` is used for `POST`, `PUT`, `DELETE`, etc.
+
+#### `useURL`
+
+#### `useAPI`
