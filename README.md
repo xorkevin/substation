@@ -694,8 +694,8 @@ function.
 
 Type: `Object`
 
-`initState` is the default value that is returned by the `route` in the data
-field before the HTTP request is successful.
+`initState` is the default value that is returned in the `apiState.data` field
+before the HTTP request is successful.
 
 #### `opts`
 
@@ -737,9 +737,31 @@ failed route execution such as display an error toast.
 
 #### `apiState`
 
+Type: `{loading: bool, success: bool, err: string | null, status: int, data: Object}`
+
+`apiState` is one of the values returned by the `useResource` and `useAPICall`
+hooks. It has the fields `loading` and `success` which are `true` when the
+request is in flight, and if the request is successful, respectively. `err` is
+not null when an error is returned from either the `prehook` or `posthook` or
+by the request itself. `status` is the HTTP status, or -1 if the request was
+not sent or failed to be sent. `data` is the `initState` by default, or the
+response of the request or result of the route's `selector` if present.
+
 #### `execute`
 
-### `useResource`
+Type: `Function()`
+
+`execute` is one of the values returned by `useAPICall`. When called, it
+executes the entirety of the route, including the `prehook`, `posthook`, and
+`errhook` as necessary.
+
+#### `reexecute`
+
+Type: `Function()`
+
+`reexecute` is one of the values returned by `useResource`. When called, it
+forces the entire route to be executed again, including the `prehook`,
+`posthook`, and `errhook` as necessary.
 
 ### `useAPICall`
 
@@ -748,6 +770,77 @@ Type: `Function(selector, args = [], initState, opts) -> [apiState, execute]`
 `useAPICall` should be used when one wants to have control over when the HTTP
 request is made, such as when a button is clicked, or when another event is
 triggered. Typically `useAPICall` is used for `POST`, `PUT`, `DELETE`, etc.
+
+##### Example
+
+```js
+const selectAPIEdit = (api) => api.profile.edit;
+const profileUpdatePrehook = ([body], {cancelRef}) => {
+  if (body.name.length < 1) {
+    return 'Name must be provided';
+  }
+  if (body.bio.length < 1) {
+    return 'Bio must be provided';
+  }
+};
+const profileUpdatePosthook = (_status, _data, {cancelRef}) => {
+  console.log('Profile successfully updated');
+};
+const profileUpdateErrhook = (_stage, err) => {
+  console.log('Profile update failed: ', err);
+};
+
+// within a component
+const [apiState, execute] = useAPICall(
+  selectAPIEdit,
+  [{name: 'Kevin', bio: 'Web dev'}],
+  {},
+  {
+    prehook: profileUpdatePrehook,
+    posthook: profileUpdatePosthook,
+    errhook: profileUpdateErrhook,
+  },
+);
+const {loading, success, err, status, data} = apiState;
+
+return <button onClick={execute}>Update</button>
+```
+
+### `useResource`
+
+Type: `Function(selector, args = [], initState, opts) -> {...apiState, reexecute}`
+
+`useResource` should be used when one wants to execute a route whenever the
+arguments change. Equality is determined as defined by the React hooks docs
+which uses
+[Object.is](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is).
+Typically `useResource` is used with a `GET` call to retrieve some resource
+depending on some arguments.
+
+```js
+const selectAPIProfile = (api) => api.profile.get;
+
+// within a component
+const {loading, success, err, status, data} = useResource(selectAPIProfile, ['xorkevin'], {
+  name: '',
+  bio: '',
+});
+
+if (loading) {
+  return <div>loading</div>;
+}
+if (success) {
+  const {name, bio} = data;
+  return (
+    <div>
+      <span>Name: {name}</span>
+      <span>Bio: {bio}</span>
+    </div>
+  );
+} else {
+  return <div>Error: {err}</div>;
+}
+```
 
 ### `useURL`
 
