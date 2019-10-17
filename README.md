@@ -546,7 +546,7 @@ API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) except they
 are only applied to the current route. These values are specified in the `init`
 section of the [fetch
 documentation](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch).
-`opts` will override any defaults set by `baseOpts` for the current route.  The
+`opts` will override any defaults set by `baseOpts` for the current route. The
 only `opts` that will be ignored will be `method`, `headers`, and `body`, as
 those are set by their corresponding fields in the `routeConfig`.
 
@@ -587,11 +587,11 @@ await APIClient.hello.user('xorkevin');
 ### `APIClient`
 
 An `APIClient` is returned by `makeAPIClient` which is a tree of JS objects and
-async functions that return `[data, status, err]: [Object, int, string]`.
-`data` is the json response sent back by the server, if any. `status` is the
-HTTP status code sent back by the server. `-1` is returned if the HTTP request
-failed to be made, e.g. failing to establish a TCP connection. `err` is a
-string of the error or `null` if there is none.
+async functions that return `[data, status, err]: [Object, int, string]` known
+as `route`s. `data` is the json response sent back by the server, if any.
+`status` is the HTTP status code sent back by the server. `-1` is returned if
+the HTTP request failed to be made, e.g. failing to establish a TCP connection.
+`err` is a string of the error or `null` if there is none.
 
 ##### Example
 
@@ -627,7 +627,7 @@ assert.strictEqual(err, null);
 project, hence integrations are provided to use the client in a declarative
 way. So far only `React` is supported.
 
-### React
+## React
 
 `substation` exports an `APIContext` which provides the `APIClient` to a number
 of React hooks. These hooks may then be used within React components.
@@ -638,7 +638,7 @@ provide `APIContext`, are exported by `substation`. This allows React projects
 which are still migrating to hooks, or do not plan to use them to take
 advantage of `substation`.
 
-#### `APIContext`
+### `APIContext`
 
 `APIContext` is a React context that provides `APIClient` to all components.
 
@@ -669,23 +669,79 @@ ReactDOM.render(
 );
 ```
 
-#### Definitions
+### Definitions
 
-##### `selector`
+#### `selector`
 
-##### `args`
+Type: `Function(APIClient) -> route`
 
-##### `initState`
+A `selector` returns a specific route from the `APIClient` to use.
 
-##### `opts`
+##### Example
 
-##### `apiState`
+```js
+const selectAPIUser = (api) => api.u.user.name;
+```
 
-##### `execute`
+#### `args`
 
-#### `useResource`
+Type: `Array`
 
-#### `useAPICall`
+`args` is an array of arguments that are passed to the `route` `transformer`
+function.
+
+#### `initState`
+
+Type: `Object`
+
+`initState` is the default value that is returned by the `route` in the data
+field before the HTTP request is successful.
+
+#### `opts`
+
+Type: `{prehook, posthook, errhook}`
+
+`opts` contains a `prehook`, `posthook`, and `errhook` for the route.
+
+#### `prehook`
+
+Type: `async Function(args, {cancelRef}) -> string | undefined`
+
+`prehook` is run just prior to when the route is executed. It takes the array
+of arguments for the route `args` and a `cancelRef` of which
+`cancelRef.current` is `true` if the api call has been cancelled. The `prehook`
+may return an error in the form of a `string`. If an error is returned, then
+the `route` immediately returns with that error and no HTTP request is made.
+Typically `prehook` is used to validate data before the route is run.
+
+#### `posthook`
+
+Type: `async Function(status, data, {cancelRef}) -> string | undefined`
+
+`posthook` is run after a route receives a successful HTTP response. It takes
+the response status, body, and a `cancelRef` of which `cancelRef.current` is
+`true` if the api call has been cancelled. The `posthook` may return an error
+in the form of a `string`. If an error is returned, then the `route`
+immediately returns with that error. Typically `posthook` is used to perform
+some behavior after a successful HTTP request which may depend on the response.
+
+#### `errhook`
+
+Type: `async Function(string, err)`
+
+`errhook` is run after any error is returned by either the prehook, route, or
+posthook. The first argument will be set to `prehook`, `api`, and `posthook`
+respectively in those situations. The error message will be passed as the
+second argument. Typically `errhook` is used to perform some behavior after a
+failed route execution such as display an error toast.
+
+#### `apiState`
+
+#### `execute`
+
+### `useResource`
+
+### `useAPICall`
 
 Type: `Function(selector, args = [], initState, opts) -> [apiState, execute]`
 
@@ -693,6 +749,6 @@ Type: `Function(selector, args = [], initState, opts) -> [apiState, execute]`
 request is made, such as when a button is clicked, or when another event is
 triggered. Typically `useAPICall` is used for `POST`, `PUT`, `DELETE`, etc.
 
-#### `useURL`
+### `useURL`
 
-#### `useAPI`
+### `useAPI`
