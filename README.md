@@ -844,4 +844,25 @@ if (success) {
 
 ### `useURL`
 
+Type: `Function(selector, args = []) -> String`
+
+`useURL` takes an api `selector` and applies it to the current context's
+`APIClient`. It then returns the formatted url path with the arguments
+substituted. Typically this is used to get the urls for requests that aren't
+made via JS, such as image content requests.
+
+##### Example
+
+```js
+const selectAPIProfileImage = (api) => api.profile.id.image;
+
+// within a component
+const imageURL = useURL(selectAPIProfileImage, ['xorkevin']);
+```
+
 ### `useAPI`
+
+Type: `Function(selector) -> route`
+
+`useAPI` takes an api `selector` and applies it to the current context's
+`APIClient`.
