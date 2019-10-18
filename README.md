@@ -763,7 +763,9 @@ Type: `Function()`
 forces the entire route to be executed again, including the `prehook`,
 `posthook`, and `errhook` as necessary.
 
-### `useAPICall`
+### Hooks
+
+#### `useAPICall`
 
 Type: `Function(selector, args = [], initState, opts) -> [apiState, execute]`
 
@@ -806,7 +808,7 @@ const {loading, success, err, status, data} = apiState;
 return <button onClick={execute}>Update</button>
 ```
 
-### `useResource`
+#### `useResource`
 
 Type: `Function(selector, args = [], initState, opts) -> {...apiState, reexecute}`
 
@@ -842,7 +844,7 @@ if (success) {
 }
 ```
 
-### `useURL`
+#### `useURL`
 
 Type: `Function(selector, args = []) -> String`
 
@@ -860,9 +862,10 @@ const selectAPIProfileImage = (api) => api.profile.id.image;
 const imageURL = useURL(selectAPIProfileImage, ['xorkevin']);
 ```
 
-### `useAPI`
+#### `useAPI`
 
 Type: `Function(selector) -> route`
 
 `useAPI` takes an api `selector` and applies it to the current context's
-`APIClient`.
+`APIClient`. This hook is provided as an escape hatch, and typically should not
+be used in favor of `useAPICall` and `useResource`.
