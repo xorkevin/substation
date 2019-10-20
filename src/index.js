@@ -253,7 +253,8 @@ const useResource = (selector, args = [], initState, opts) => {
     return () => {
       cancelRef.current = true;
     };
-  }, [selector, execute]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selector, execute, ...args]);
 
   const reexecute = useCallback(
     (opts) => {
@@ -261,8 +262,7 @@ const useResource = (selector, args = [], initState, opts) => {
         execute(opts);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selector, execute, ...args],
+    [selector, execute],
   );
 
   return {...apiState, reexecute};
