@@ -3,4 +3,5 @@
 !package-lock.json
 !README.md
 !LICENSE
-!dist
+!index.js
+!utility.js
