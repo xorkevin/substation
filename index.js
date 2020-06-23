@@ -246,7 +246,7 @@ const useResource = (selector, args = [], initState, opts) => {
   const [apiState, execute] = useAPICall(selector, args, initState, opts);
 
   useEffect(() => {
-    let cancelRef = {current: false};
+    const cancelRef = {current: false};
     if (selector !== selectAPINull) {
       execute({cancelRef});
     }
