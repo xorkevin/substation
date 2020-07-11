@@ -206,23 +206,7 @@ const useAPICall = (
       }
 
       if (posthook) {
-        const err = await posthook(status, data, {cancelRef});
-        if (cancelRef && cancelRef.current) {
-          return [null, -1, API_CANCEL];
-        }
-        if (err) {
-          setApiState({
-            loading: false,
-            success: false,
-            err,
-            status,
-            data,
-          });
-          if (errhook) {
-            errhook('posthook', err);
-          }
-          return [data, status, err];
-        }
+        posthook(status, data, {cancelRef});
       }
 
       setApiState({
@@ -232,7 +216,7 @@ const useAPICall = (
         status,
         data,
       });
-      return [data, status, err];
+      return [data, status, null];
     },
     [setApiState, argsRef, initStateRef, route, prehook, posthook, errhook],
   );
@@ -265,7 +249,7 @@ const useResource = (selector, args = [], initState, opts) => {
     [selector, execute],
   );
 
-  return {...apiState, reexecute};
+  return [apiState, reexecute];
 };
 
 export {
