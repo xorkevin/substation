@@ -1,11 +1,12 @@
 {
   "name": "@xorkevin/substation",
-  "version": "0.1.5-0",
+  "version": "0.1.5-1",
   "description": "a data framework to power reactive apps",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
   "main": "index.js",
+  "files": ["README.md", "LICENSE", "index.js", "utility.js"],
   "sideEffects": false,
   "scripts": {
     "lint": "eslint .",
