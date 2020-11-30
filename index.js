@@ -132,9 +132,11 @@ const makeAPIClient = (baseurl, baseopts, apiconfig) => {
 
 const APIContext = createContext();
 
-const APIMiddleware = (value) => ({children}) => (
-  <APIContext.Provider value={value}>{children}</APIContext.Provider>
-);
+const APIMiddleware = (value) => ({
+  ctxProvider: ({children}) => (
+    <APIContext.Provider value={value}>{children}</APIContext.Provider>
+  ),
+});
 
 const useAPI = (selector) => {
   const apiClient = useContext(APIContext);
