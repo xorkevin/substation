@@ -1,4 +1,5 @@
-import React, {
+import {
+  createContext,
   useState,
   useEffect,
   useCallback,
@@ -129,7 +130,11 @@ const makeAPIClient = (baseurl, baseopts, apiconfig) => {
 
 // Hooks
 
-const APIContext = React.createContext();
+const APIContext = createContext();
+
+const APIMiddleware = (value) => ({children}) => (
+  <APIContext.Provider value={value}>{children}</APIContext.Provider>
+);
 
 const useAPI = (selector) => {
   const apiClient = useContext(APIContext);
@@ -256,6 +261,7 @@ export {
   makeFetch,
   makeAPIClient,
   APIContext,
+  APIMiddleware,
   useAPI,
   useURL,
   useAPICall,
