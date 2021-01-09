@@ -6,7 +6,7 @@ import {
   useContext,
   useRef,
 } from 'react';
-import {formatStrArgs} from './utility';
+import {formatURLArgs} from './utility';
 
 // API Client
 
@@ -79,7 +79,7 @@ const makeFetch = ({
 
     const headers = Object.assign(tempheaders, baseheaders, reqheaders);
     const opts = Object.assign({}, baseopts, reqopts, {method, headers, body});
-    const finalurl = params ? formatStrArgs(url, params) : url;
+    const finalurl = params ? formatURLArgs(url, params) : url;
 
     try {
       const res = await fetch(finalurl, opts);
@@ -119,7 +119,7 @@ const makeAPIClient = (baseurl, baseopts, apiconfig) => {
         Object.assign(fn, {
           prop: {
             url,
-            formatUrl: (args) => formatStrArgs(url, args),
+            formatUrl: (args) => formatURLArgs(url, args),
           },
         });
         return [k, Object.freeze(fn)];

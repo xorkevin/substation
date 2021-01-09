@@ -1,14 +1,14 @@
-const formatStrArgs = (str, args) => {
+const formatURLArgs = (str, args) => {
   return str.replace(/{(\d+)}/g, (match, number) => {
     if (typeof args[number] != 'undefined') {
-      return args[number];
+      return encodeURIComponent(args[number]);
     }
     return match;
   });
 };
 
-const formatStr = (str, ...args) => {
-  return formatStrArgs(str, args);
+const formatURL = (str, ...args) => {
+  return formatURLArgs(str, args);
 };
 
-export {formatStr, formatStrArgs};
+export {formatURL, formatURLArgs};
