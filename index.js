@@ -32,7 +32,11 @@ const defaultSelector = (_status, data) => {
 
 const defaultErrHandler = (defaultMessage) => (_status, data) => {
   if (data && data.message) {
-    return data.message;
+    const msg = data.message;
+    if (data.code) {
+      msg.code = data.code;
+    }
+    return msg;
   }
   return defaultMessage;
 };
