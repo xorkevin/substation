@@ -31,14 +31,12 @@ const defaultSelector = (_status, data) => {
 };
 
 const defaultErrHandler = (defaultMessage) => (_status, data) => {
-  if (data && data.message) {
-    const msg = data.message;
-    if (data.code) {
-      msg.code = data.code;
-    }
-    return msg;
+  if (data) {
+    return data;
   }
-  return defaultMessage;
+  return {
+    message: defaultMessage,
+  };
 };
 
 const defaultCatcher = (err) => err.message;
