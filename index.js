@@ -14,13 +14,31 @@ const JSON_MIME = 'application/json';
 
 const defaultTransformer = (...args) => {
   if (args.length === 0) {
-    return [null, null, null, null];
+    return {
+      params: null,
+      query: null,
+      body: null,
+      headers: null,
+      opts: null,
+    };
   }
   if (args.length === 1) {
-    return [null, args[0], null, null];
+    return {
+      params: null,
+      query: null,
+      body: args[0],
+      headers: null,
+      opts: null,
+    };
   }
   const k = args.length - 1;
-  return [args.slice(0, k), args[k], null, null];
+  return {
+    params: args.slice(0, k),
+    query: null,
+    body: args[k],
+    headers: null,
+    opts: null,
+  };
 };
 
 const defaultSelector = (_status, data) => {
@@ -66,24 +84,40 @@ const makeFetch = ({
   const oncatch = catcher || defaultCatcher;
 
   return async (...args) => {
-    const [params, bodycontent, reqheaders, reqopts] = transformargs(...args);
+    const req = transformargs(...args);
 
     const tempheaders = {};
     let body = undefined;
-    if (bodycontent) {
-      if (bodycontent instanceof FormData) {
-        body = bodycontent;
+    if (req.body) {
+      if (req.body instanceof FormData) {
+        body = req.body;
       } else {
         tempheaders['Content-Type'] = JSON_MIME;
-        body = JSON.stringify(bodycontent);
+        body = JSON.stringify(req.body);
       }
     }
 
-    const headers = Object.assign(tempheaders, baseheaders, reqheaders);
-    const opts = Object.assign({}, baseopts, reqopts, {method, headers, body});
-    const finalurl = params ? formatURLArgs(url, params) : url;
+    const headers = Object.assign(tempheaders, baseheaders, req.headers);
+    const opts = Object.assign({}, baseopts, req.opts, {method, headers, body});
+    const path = req.params ? formatURLArgs(url, req.params) : url;
 
     try {
+      const u = new URL(path);
+      if (req.query) {
+        const q = u.searchParams;
+        for (const [k, v] of Object.entries(req.query).sort((a, b) => {
+          if (a < b) {
+            return -1;
+          }
+          if (a > b) {
+            return 1;
+          }
+          return 0;
+        })) {
+          q.set(k, v);
+        }
+      }
+      const finalurl = u.toString();
       const res = await fetch(finalurl, opts);
       const status = res.status;
       if (status < 200 || status >= 300) {

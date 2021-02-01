@@ -220,7 +220,7 @@ const apiConfig = {
       user: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
       },
     },
   },
@@ -260,7 +260,7 @@ const apiConfig = {
       user: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
         children: {
           image: {
             url: '/image',
@@ -286,11 +286,11 @@ await APIClient.profile.user('xorkevin');
 
 #### `transformer`
 
-Type: `Function(...args) -> [urlParams: string[] | null, body: Object | FormData | null, headers: Object | null, opts: Object | null]`, optional
+Type: `Function(...args) -> {params: string[] | null, query: Object | null, body: Object | FormData | null, headers: Object | null, opts: Object | null}`, optional
 
 `transformer` is called on all the arguments passed to a route, and it returns
-a 4 element array (tuple) containing the url params array, request body,
-request headers, and request opts. The `n`th element in the url params array
+an object containing the url params array, query params, request body, request
+headers, and request opts. The `n`th element in the url params array
 corresponds to the `n`th `{n}` placeholder as seen in the `url` field
 definition. The body may be a JSON object or
 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData). The
@@ -310,7 +310,7 @@ const apiConfig = {
         update: {
           url: '',
           method: 'PUT',
-          transformer: (username, fields) => [[username], fields],
+          transformer: (username, fields) => ({params: [username], body: fields}),
         },
       },
     },
@@ -355,7 +355,7 @@ const apiConfig = {
       name: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
         expectdata: true,
       },
     },
@@ -390,7 +390,7 @@ const apiConfig = {
       name: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
         expectdata: true,
         selector: (_status, {firstName}) => firstName,
       },
@@ -443,7 +443,7 @@ const apiConfig = {
       name: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
         err: (_status, data) => data && data.message,
       },
     },
@@ -496,7 +496,7 @@ const apiConfig = {
       name: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
         catcher: (err) => err.message,
       },
     },
@@ -568,7 +568,7 @@ const apiConfig = {
       user: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
       },
     },
   },
@@ -604,7 +604,7 @@ const apiConfig = {
       user: {
         url: '/{0}',
         method: 'GET',
-        transformer: (username) => [[username], null],
+        transformer: (username) => ({params: [username], body: null}),
       },
     },
   },
