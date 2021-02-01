@@ -57,7 +57,7 @@ const defaultErrHandler = (defaultMessage) => (_status, data) => {
   };
 };
 
-const defaultCatcher = (err) => err.message;
+const defaultCatcher = (err) => err;
 
 const makeFetch = ({
   url,
