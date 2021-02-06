@@ -89,7 +89,7 @@ const makeFetch = ({
     const tempheaders = {};
     let body = undefined;
     if (req.body) {
-      if (req.body instanceof FormData) {
+      if (req.body instanceof FormData || req.body instanceof URLSearchParams) {
         body = req.body;
       } else {
         tempheaders['Content-Type'] = JSON_MIME;
