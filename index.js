@@ -12,34 +12,13 @@ import {formatURLArgs} from './utility';
 
 const JSON_MIME = 'application/json';
 
-const defaultTransformer = (...args) => {
-  if (args.length === 0) {
-    return {
-      params: null,
-      query: null,
-      body: null,
-      headers: null,
-      opts: null,
-    };
-  }
-  if (args.length === 1) {
-    return {
-      params: null,
-      query: null,
-      body: args[0],
-      headers: null,
-      opts: null,
-    };
-  }
-  const k = args.length - 1;
-  return {
-    params: args.slice(0, k),
-    query: null,
-    body: args[k],
-    headers: null,
-    opts: null,
-  };
-};
+const defaultTransformer = () => ({
+  params: null,
+  query: null,
+  body: null,
+  headers: null,
+  opts: null,
+});
 
 const defaultSelector = (_status, data) => {
   if (data) {
@@ -67,10 +46,12 @@ const makeFetch = ({
   selector,
   err,
   catcher,
-  headers: baseheaders,
-  opts: baseopts,
+  middleware,
 }) => {
-  const transformargs = transformer || defaultTransformer;
+  const transformargs = (middleware && Array.isArray(middleware.transform)
+    ? middleware.transform
+    : []
+  ).reduceRight((a, i) => i(a), transformer || defaultTransformer);
   const onsuccess = selector || defaultSelector;
   const onerr = (() => {
     if (!err) {
@@ -97,8 +78,8 @@ const makeFetch = ({
       }
     }
 
-    const headers = Object.assign(tempheaders, baseheaders, req.headers);
-    const opts = Object.assign({}, baseopts, req.opts, {method, headers, body});
+    const headers = Object.assign(tempheaders, req.headers);
+    const opts = Object.assign({}, req.opts, {method, headers, body});
     const path = req.params ? formatURLArgs(url, req.params) : url;
 
     try {
@@ -139,18 +120,29 @@ const makeFetch = ({
   };
 };
 
-const makeAPIClient = (baseurl, baseopts, apiconfig) => {
+const makeAPIClient = (baseurl, apiconfig, baseMiddleware) => {
+  const baseTrMiddleware =
+    baseMiddleware && Array.isArray(baseMiddleware.transform)
+      ? baseMiddleware.transform
+      : [];
   return Object.freeze(
     Object.fromEntries(
       Object.entries(apiconfig).map(([k, v]) => {
         const url = baseurl + v.url;
+        const middleware = {
+          transform: baseTrMiddleware.concat(
+            v.middleware && Array.isArray(v.middleware.transform)
+              ? v.middleware.transform
+              : [],
+          ),
+        };
         const fn = v.method
           ? makeFetch(
-              Object.assign({opts: baseopts}, v, {url, children: undefined}),
+              Object.assign({}, v, {url, middleware, children: undefined}),
             )
           : {};
         if (v.children) {
-          Object.assign(fn, makeAPIClient(url, baseopts, v.children));
+          Object.assign(fn, makeAPIClient(url, v.children, middleware));
         }
         Object.assign(fn, {
           prop: {
