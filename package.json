@@ -1,6 +1,6 @@
 {
   "name": "@xorkevin/substation",
-  "version": "0.1.5-10",
+  "version": "0.1.5",
   "description": "a data framework to power reactive apps",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
