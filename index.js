@@ -48,9 +48,10 @@ const makeFetch = ({
   catcher,
   middleware,
 }) => {
-  const transformargs = (middleware && Array.isArray(middleware.transform)
-    ? middleware.transform
-    : []
+  const transformargs = (
+    middleware && Array.isArray(middleware.transform)
+      ? middleware.transform
+      : []
   ).reduceRight((a, i) => i(a), transformer || defaultTransformer);
   const onsuccess = selector || defaultSelector;
   const onerr = (() => {
@@ -240,10 +241,6 @@ const useAPICall = (
         return [data, status, err];
       }
 
-      if (posthook) {
-        posthook(status, data, {cancelRef});
-      }
-
       setApiState({
         loading: false,
         success: true,
@@ -251,6 +248,11 @@ const useAPICall = (
         status,
         data,
       });
+
+      if (posthook) {
+        posthook(status, data, {cancelRef});
+      }
+
       return [data, status, null];
     },
     [setApiState, argsRef, initStateRef, route, prehook, posthook, errhook],
