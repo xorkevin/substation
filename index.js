@@ -65,22 +65,20 @@ const makeFetch = ({
   })();
   const oncatch = catcher || defaultCatcher;
 
-  return async (...args) => {
+  return async ({signal} = {}, ...args) => {
     const req = transformargs(...args);
 
     const tempheaders = {};
     let body = undefined;
     if (req.body) {
-      if (req.body instanceof FormData || req.body instanceof URLSearchParams) {
-        body = req.body;
-      } else {
-        tempheaders['Content-Type'] = JSON_MIME;
-        body = JSON.stringify(req.body);
-      }
+      body = req.body;
+    } else if (req.json) {
+      tempheaders['Content-Type'] = JSON_MIME;
+      body = JSON.stringify(req.json);
     }
 
     const headers = Object.assign(tempheaders, req.headers);
-    const opts = Object.assign({}, req.opts, {method, headers, body});
+    const opts = Object.assign({}, req.opts, {method, headers, body, signal});
     const path = req.params ? formatURLArgs(url, req.params) : url;
 
     try {
@@ -138,9 +136,7 @@ const makeAPIClient = (baseurl, apiconfig, baseMiddleware) => {
           ),
         };
         const fn = v.method
-          ? makeFetch(
-              Object.assign({}, v, {url, middleware, children: undefined}),
-            )
+          ? makeFetch(Object.assign({}, v, {url, middleware}))
           : {};
         if (v.children) {
           Object.assign(fn, makeAPIClient(url, v.children, middleware));
@@ -196,7 +192,7 @@ const useAPICall = (
   argsRef.current = args;
 
   const apicall = useCallback(
-    async ({cancelRef} = {}) => {
+    async ({signal} = {}) => {
       setApiState((s) =>
         Object.assign({}, s, {
           loading: true,
@@ -204,8 +200,8 @@ const useAPICall = (
       );
 
       if (prehook) {
-        const err = await prehook(argsRef.current, {cancelRef});
-        if (cancelRef && cancelRef.current) {
+        const err = await prehook(argsRef.current, {signal});
+        if (signal && signal.aborted) {
           return [null, -1, API_CANCEL];
         }
         if (err) {
@@ -223,8 +219,8 @@ const useAPICall = (
         }
       }
 
-      const [data, status, err] = await route(...argsRef.current);
-      if (cancelRef && cancelRef.current) {
+      const [data, status, err] = await route({signal}, ...argsRef.current);
+      if (signal && signal.aborted) {
         return [null, -1, API_CANCEL];
       }
       if (err) {
@@ -250,7 +246,7 @@ const useAPICall = (
       });
 
       if (posthook) {
-        posthook(status, data, {cancelRef});
+        posthook(status, data, {signal});
       }
 
       return [data, status, null];
@@ -267,12 +263,12 @@ const useResource = (selector, args = [], initState, opts) => {
   const [apiState, execute] = useAPICall(selector, args, initState, opts);
 
   useEffect(() => {
-    const cancelRef = {current: false};
+    const controller = new AbortController();
     if (selector !== selectAPINull) {
-      execute({cancelRef});
+      execute({signal: controller.signal});
     }
     return () => {
-      cancelRef.current = true;
+      controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selector, execute, ...args]);
