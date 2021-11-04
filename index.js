@@ -20,14 +20,14 @@ const defaultTransformer = () => ({
   opts: null,
 });
 
-const defaultSelector = (_status, data) => {
+const defaultSelector = (_res, data) => {
   if (data) {
     return data;
   }
   return null;
 };
 
-const defaultErrHandler = (defaultMessage) => (_status, data) => {
+const defaultErrHandler = (defaultMessage) => (_res, data) => {
   if (data) {
     return data;
   }
@@ -42,7 +42,7 @@ const makeFetch = ({
   url,
   method,
   transformer,
-  expectdata,
+  expectjson,
   selector,
   err,
   catcher,
@@ -99,22 +99,22 @@ const makeFetch = ({
       }
       const finalurl = u.toString();
       const res = await fetch(finalurl, opts);
-      const status = res.status;
-      if (status < 200 || status >= 300) {
+      if (res.ok) {
+        // ok is true if status is [200-299]
         try {
           const err = await res.json();
-          return [null, status, onerr(status, err)];
+          return [null, res, onerr(res, err)];
         } catch (_err) {
-          return [null, status, onerr(status)];
+          return [null, res, onerr(res)];
         }
       }
-      if (!expectdata) {
-        return [onsuccess(status), status, null];
+      if (expectjson) {
+        const data = await res.json();
+        return [await onsuccess(res, data), res, null];
       }
-      const data = await res.json();
-      return [onsuccess(status, data), status, null];
+      return [await onsuccess(res), res, null];
     } catch (err) {
-      return [null, -1, oncatch(err)];
+      return [null, null, oncatch(err)];
     }
   };
 };
@@ -182,7 +182,7 @@ const useAPICall = (
     loading: false,
     success: false,
     err: null,
-    status: -1,
+    res: null,
     data: initState,
   });
   const route = useAPI(selector);
@@ -202,54 +202,54 @@ const useAPICall = (
       if (prehook) {
         const err = await prehook(argsRef.current, {signal});
         if (signal && signal.aborted) {
-          return [null, -1, API_CANCEL];
+          return [null, null, API_CANCEL];
         }
         if (err) {
           setApiState({
             loading: false,
             success: false,
             err,
-            status: -1,
+            res: null,
             data: initStateRef.current,
           });
           if (errhook) {
             errhook('prehook', err);
           }
-          return [null, -1, err];
+          return [null, null, err];
         }
       }
 
-      const [data, status, err] = await route({signal}, ...argsRef.current);
+      const [data, res, err] = await route({signal}, ...argsRef.current);
       if (signal && signal.aborted) {
-        return [null, -1, API_CANCEL];
+        return [null, null, API_CANCEL];
       }
       if (err) {
         setApiState({
           loading: false,
           success: false,
           err,
-          status,
+          res,
           data: initStateRef.current,
         });
         if (errhook) {
           errhook('api', err);
         }
-        return [data, status, err];
+        return [data, res, err];
       }
 
       setApiState({
         loading: false,
         success: true,
         err: null,
-        status,
+        res,
         data,
       });
 
       if (posthook) {
-        posthook(status, data, {signal});
+        posthook(res, data, {signal});
       }
 
-      return [data, status, null];
+      return [data, res, null];
     },
     [setApiState, argsRef, initStateRef, route, prehook, posthook, errhook],
   );
