@@ -20,7 +20,7 @@ const defaultTransformer = () => ({
   opts: null,
 });
 
-const defaultSelector = (_res, data) => {
+const defaultSelector = (_res, data, opts) => {
   if (data) {
     return data;
   }
@@ -110,9 +110,9 @@ const makeFetch = ({
       }
       if (expectjson) {
         const data = await res.json();
-        return [await onsuccess(res, data), res, null];
+        return [await onsuccess(res, data, {signal}), res, null];
       }
-      return [await onsuccess(res), res, null];
+      return [await onsuccess(res, null, {signal}), res, null];
     } catch (err) {
       return [null, null, oncatch(err)];
     }
@@ -260,6 +260,11 @@ const useAPICall = (
 const selectAPINull = () => null;
 
 const useResource = (selector, args = [], initState, opts) => {
+  const [ptr, updatePtr] = useState({});
+  const reexecute = useCallback(() => {
+    updatePtr({});
+  }, [updatePtr]);
+
   const [apiState, execute] = useAPICall(selector, args, initState, opts);
 
   useEffect(() => {
@@ -271,16 +276,7 @@ const useResource = (selector, args = [], initState, opts) => {
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selector, execute, ...args]);
-
-  const reexecute = useCallback(
-    (opts) => {
-      if (selector !== selectAPINull) {
-        execute(opts);
-      }
-    },
-    [selector, execute],
-  );
+  }, [ptr, selector, execute, ...args]);
 
   return [apiState, reexecute];
 };
