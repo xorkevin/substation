@@ -20,7 +20,7 @@ const defaultTransformer = () => ({
   opts: null,
 });
 
-const defaultSelector = (_res, data, opts) => {
+const defaultSelector = (_res, data, _opts) => {
   if (data) {
     return data;
   }
