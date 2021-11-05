@@ -99,7 +99,7 @@ const makeFetch = ({
       }
       const finalurl = u.toString();
       const res = await fetch(finalurl, opts);
-      if (res.ok) {
+      if (!res.ok) {
         // ok is true if status is [200-299]
         try {
           const err = await res.json();
